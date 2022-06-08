@@ -1,0 +1,13 @@
+on: [push, pull_request]
+
+name: Linting
+jobs:
+    php-cs-fixer:
+        name: 'Code Style'
+        runs-on: ubuntu-latest
+        steps:
+            -   uses: actions/checkout@v2
+            -   name: PHP-CS-Fixer
+                uses: docker://oskarstark/php-cs-fixer-ga
+                with:
+                    args: --allow-risky=yes --dry-run -v
