@@ -25,7 +25,7 @@ jobs:
             -   name: Installing Composer Packages
                 run: 'composer install --no-scripts --prefer-dist'
             -   name: Static Analysing
-                run: composer test:psalm -- --output-format=github'
+                run: composer test:psalm -- --output-format=github
 
     phpunit:
         strategy:
