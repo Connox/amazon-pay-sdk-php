@@ -5,6 +5,7 @@ namespace AmazonPay;
 use Exception;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
+use SimpleXMLElement;
 
 /**
  * Class IPN_Handler
@@ -357,10 +358,8 @@ class IpnHandler implements IpnHandlerInterface, LoggerAwareInterface
      * Type - Notification
      * MessageId -  ID of the Notification
      * Topic ARN - Topic of the IPN
-     *
-     * @return response in JSON format
      */
-    public function toJson()
+    public function toJson(): string
     {
         $response = $this->simpleXmlObject();
 
@@ -374,10 +373,8 @@ class IpnHandler implements IpnHandlerInterface, LoggerAwareInterface
 
     /**
      * toArray() - Converts IPN [Message] field to associative array
-     *
-     * @return response in array format
      */
-    public function toArray()
+    public function toArray(): array
     {
         $response = $this->simpleXmlObject();
 
@@ -400,10 +397,8 @@ class IpnHandler implements IpnHandlerInterface, LoggerAwareInterface
      * Type - Notification
      * MessageId -  ID of the Notification
      * Topic ARN - Topic of the IPN
-     *
-     * @return response in array format
      */
-    private function simpleXmlObject()
+    private function simpleXmlObject(): SimpleXMLElement
     {
         $ipnMessage = $this->returnMessage();
 
