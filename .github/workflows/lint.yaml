@@ -3,7 +3,7 @@ on: [push]
 name: Linting
 jobs:
     php-cs-fixer:
-        name: 'Code Style'
+        name: 'Code Style Fixer'
         runs-on: ubuntu-latest
         steps:
             -   uses: actions/checkout@v2

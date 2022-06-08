@@ -1,0 +1,28 @@
+on: [push]
+
+name: Static analysis
+jobs:
+
+    psalm:
+        name: 'Psalm'
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout
+                uses: actions/checkout@master
+            -   name: Setup PHP
+                uses: shivammathur/setup-php@v2
+                with:
+                    php-version: '8.0'
+                    tools: composer:v2
+                    extensions: 'json curl xml openssl'
+                env:
+                    update: true
+            -   name: Cache Composer Dependencies
+                uses: actions/cache@v2
+                with:
+                    path: vendor
+                    key: composer-${{ hashFiles('composer.lock') }}
+            -   name: Installing Composer Packages
+                run: 'composer install --no-scripts --prefer-dist'
+            -   name: Static Analysing
+                run: composer test:psalm -- --output-format=github

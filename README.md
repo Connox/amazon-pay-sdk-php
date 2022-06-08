@@ -1,3 +1,10 @@
+[![latest stable version](https://img.shields.io/packagist/v/connox/amazon-pay-sdk.svg?style=flat-square)](https://packagist.org/packages/connox/amazon-pay-sdk)
+[![license](https://img.shields.io/packagist/l/connox/amazon-pay-sdk?style=flat-square)](https://packagist.org/packages/connox/amazon-pay-sdk)
+[![php version](https://img.shields.io/packagist/php-v/connox/amazon-pay-sdk?style=flat-square)](https://packagist.org/packages/connox/amazon-pay-sdk)
+[![codecov](https://img.shields.io/codecov/c/github/Connox/amazon-pay-sdk?style=flat-square&token=I8AVSCQONG)](https://codecov.io/gh/Connox/amazon-pay-sdk)
+[![unit tests](https://img.shields.io/github/workflow/status/Connox/amazon-pay-sdk/Unit%20tests/main?style=flat-square&label=unit%20tests)](https://github.com/Connox/amazon-pay-sdk)
+[![psalm](https://img.shields.io/github/workflow/status/Connox/amazon-pay-sdk/Static%20analysis/main?style=flat-square&label=psalm)](https://github.com/Connox/amazon-pay-sdk)
+
 # Amazon Pay SDK (PHP)
 Amazon Pay API Integration
 
@@ -502,7 +509,7 @@ SDK logging of sanitized requests and responses can work with any PSR-3 complian
 namespace AmazonPay;
 require 'vendor/autoload.php';
 include 'amazon-pay.phar';
- 
+
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
