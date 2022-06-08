@@ -2,9 +2,10 @@
 
 namespace AmazonPay;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
 
-class IpnHandlertest extends TestCase
+class IpnHandlerTest extends TestCase
 {
     private $configParams = [
         'cabundle_file' => null,
@@ -17,20 +18,19 @@ class IpnHandlertest extends TestCase
     public function testConstructor()
     {
         try {
-            $headers = [];
             $headers = ['ab' => 'abc'];
             $body = 'abctest';
 
-            $ipnHandler = new IpnHandler($headers, $body, $this->configParams);
-        } catch (\Exception $expected) {
+            new IpnHandler($headers, $body, $this->configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/Error with message - header./i', strval($expected));
         }
         try {
             $headers['x-amz-sns-message-type'] = 'Notification';
             $body = 'abctest';
 
-            $ipnHandler = new IpnHandler($headers, $body, $this->configParams);
-        } catch (\Exception $expected) {
+            new IpnHandler($headers, $body, $this->configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/Error with message - content is not in json format./i', strval($expected));
         }
         try {
@@ -39,8 +39,8 @@ class IpnHandlertest extends TestCase
                 'b' => 'B',
             ];
 
-            $ipnHandler = new IpnHandler([], null, $ConfigParams);
-        } catch (\Exception $expected) {
+            new IpnHandler([], null, $ConfigParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/is either not part of the configuration or has incorrect Key name./i', strval($expected));
         }
     }
@@ -50,43 +50,43 @@ class IpnHandlertest extends TestCase
         $headers = ['x-amz-sns-message-type' => 'Notification'];
         try {
             $body = '{"Type":"Notification", "Message":"Test", "MessageId":"Test", "Timestamp":"Test", "Subject":"Test", "TopicArn":"Test", "Signature":"Test", "SigningCertURL":"http://sns.us-east-1.amazonaws.com/SimpleNotificationService-bb750dd426d95ee9390147a5624348ee.pem"}';
-            $ipnHandler = new IpnHandler($headers, $body, $this->configParams);
-        } catch (\Exception $expected) {
+            new IpnHandler($headers, $body, $this->configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/The certificate is located on an invalid domain./i', strval($expected));
         }
 
         try {
             $body = '{"Type":"Notification", "Message":"Test", "MessageId":"Test", "Timestamp":"Test", "Subject":"Test", "TopicArn":"Test", "Signature":"Test", "SigningCertURL":"https://sns.us-east-1.amazonaws.com/SimpleNotificationService-bb750dd426d95ee9390147a5624348ee.exe"}';
-            $ipnHandler = new IpnHandler($headers, $body, $this->configParams);
-        } catch (\Exception $expected) {
+            new IpnHandler($headers, $body, $this->configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/The certificate is located on an invalid domain./i', strval($expected));
         }
 
         try {
             $body = '{"Type":"Notification", "Message":"Test", "MessageId":"Test", "Timestamp":"Test", "Subject":"Test", "TopicArn":"Test", "Signature":"Test", "SigningCertURL":"https://sns.us-east-1.example.com/SimpleNotificationService-bb750dd426d95ee9390147a5624348ee.pem"}';
-            $ipnHandler = new IpnHandler($headers, $body, $this->configParams);
-        } catch (\Exception $expected) {
+            new IpnHandler($headers, $body, $this->configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/The certificate is located on an invalid domain./i', strval($expected));
         }
 
         try {
             $body = '{"Type":"Notification", "Message":"Test", "MessageId":"Test", "Timestamp":"Test", "Subject":"Test", "TopicArn":"Test", "Signature":"Test", "SigningCertURL":"https://sni.us-east-1.amazonaws.com/SimpleNotificationService-bb750dd426d95ee9390147a5624348ee.pem"}';
-            $ipnHandler = new IpnHandler($headers, $body, $this->configParams);
-        } catch (\Exception $expected) {
+            new IpnHandler($headers, $body, $this->configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/The certificate is located on an invalid domain./i', strval($expected));
         }
 
         try {
             $body = '{"Type":"Notification", "Message":"Test", "MessageId":"Test", "Timestamp":"Test", "Subject":"Test", "TopicArn":"Test", "Signature":"Test", "SigningCertURL":"https://sns.us.amazonaws.com/SimpleNotificationService-bb750dd426d95ee9390147a5624348ee.pem"}';
-            $ipnHandler = new IpnHandler($headers, $body, $this->configParams);
-        } catch (\Exception $expected) {
+            new IpnHandler($headers, $body, $this->configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/The certificate is located on an invalid domain./i', strval($expected));
         }
 
         try {
             $body = '{"Type":"Notification", "Message":"Test", "MessageId":"Test", "Timestamp":"Test", "Subject":"Test", "TopicArn":"Test", "Signature":"Test", "SigningCertURL":"https://sns.us-east-1.amazonaws.com.com/SimpleNotificationService-bb750dd426d95ee9390147a5624348ee.pem"}';
-            $ipnHandler = new IpnHandler($headers, $body, $this->configParams);
-        } catch (\Exception $expected) {
+            new IpnHandler($headers, $body, $this->configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/The certificate is located on an invalid domain./i', strval($expected));
         }
     }

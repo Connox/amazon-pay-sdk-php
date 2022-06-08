@@ -2,7 +2,9 @@
 
 namespace AmazonPay;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 
 class ClientTest extends TestCase
 {
@@ -34,8 +36,8 @@ class ClientTest extends TestCase
         $this->assertFalse((bool)$client->__get('sandbox'));
 
         try {
-            $client = new Client(['sandbox' => 'false']);
-        } catch (\Exception $expected) {
+            new Client(['sandbox' => 'false']);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/should be a boolean value/i', strval($expected));
         }
 
@@ -43,8 +45,8 @@ class ClientTest extends TestCase
         $this->assertTrue((bool)$client->__get('sandbox'));
 
         try {
-            $client = new Client(['sandbox' => 'true']);
-        } catch (\Exception $expected) {
+            new Client(['sandbox' => 'true']);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/should be a boolean value/i', strval($expected));
         }
 
@@ -61,8 +63,8 @@ class ClientTest extends TestCase
 
         // Unclear what is is actually doing, exception doesn't get thrown, consider removing
         try {
-            $client = new Client($this->configParams);
-        } catch (\Exception $expected) {
+            new Client($this->configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/is not a Json File or the Json File./i', strval($expected));
         }
 
@@ -72,8 +74,8 @@ class ClientTest extends TestCase
                 'a' => 'A',
                 'b' => 'B',
             ];
-            $client = new Client($configParams);
-        } catch (\Exception $expected) {
+            new Client($configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/is either not part of the configuration or has incorrect Key name./i', strval($expected));
         }
 
@@ -84,8 +86,8 @@ class ClientTest extends TestCase
         // Test passing in an empty array to construtor
         try {
             $configParams = [];
-            $client = new Client($configParams);
-        } catch (\Exception $expected) {
+            new Client($configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/$config cannot be null./i', strval($expected));
         }
     }
@@ -107,8 +109,8 @@ class ClientTest extends TestCase
 
         try {
             $configParams = __DIR__.'/config/sandbox_true_string.json';
-            $client = new Client($configParams);
-        } catch (\Exception $expected) {
+            new Client($configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/should be a boolean value/i', strval($expected));
         }
 
@@ -122,15 +124,15 @@ class ClientTest extends TestCase
 
         try {
             $configParams = __DIR__.'/config/sandbox_false_string.json';
-            $client = new Client($configParams);
-        } catch (\Exception $expected) {
+            new Client($configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/should be a boolean value/i', strval($expected));
         }
 
         try {
             $configParams = 'abc.json';
-            $client = new Client($configParams);
-        } catch (\Exception $expected) {
+            new Client($configParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/is not a Json File path or the Json File./i', strval($expected));
         }
     }
@@ -140,13 +142,13 @@ class ClientTest extends TestCase
         $client = new Client($this->configParams);
         try {
             $client->setSandbox(true);
-        } catch (\Exception $expected) {
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/and should be a boolean value./i', strval($expected));
         }
 
         try {
             $client->setSandbox('string value');
-        } catch (\Exception $expected) {
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/and should be a boolean value./i', strval($expected));
         }
     }
@@ -170,7 +172,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->getOrderReferenceDetails($apiCallParams);
+        $client->getOrderReferenceDetails($apiCallParams);
 
         $apiParametersString = $client->getParameters();
         $this->assertEquals($apiParametersString, $expectedStringParams);
@@ -202,7 +204,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->listOrderReference($apiCallParams);
+        $client->listOrderReference($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -233,7 +235,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->listOrderReferenceByNextToken($apiCallParams);
+        $client->listOrderReferenceByNextToken($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -266,7 +268,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->setOrderReferenceDetails($apiCallParams);
+        $client->setOrderReferenceDetails($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -304,7 +306,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->setOrderAttributes($apiCallParams);
+        $client->setOrderAttributes($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -342,7 +344,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->setOrderAttributes($apiCallParams);
+        $client->setOrderAttributes($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -371,7 +373,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->confirmOrderReference($apiCallParams);
+        $client->confirmOrderReference($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -400,7 +402,7 @@ class ClientTest extends TestCase
         $expectedParameters['AuthorizationAmount.CurrencyCode'] = 'USD'; # default from client
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->confirmOrderReference($apiCallParams);
+        $client->confirmOrderReference($apiCallParams);
 
         $apiParametersString = $client->getParameters();
         $this->assertEquals($apiParametersString, $expectedStringParams);
@@ -426,7 +428,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->confirmOrderReference($apiCallParams);
+        $client->confirmOrderReference($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -450,7 +452,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->confirmOrderReference($apiCallParams);
+        $client->confirmOrderReference($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -478,8 +480,8 @@ class ClientTest extends TestCase
         $apiCallParams = $parameters['apiCallParams'];
         $apiCallParams['expect_immediate_authorization'] = null;
         try {
-            $response = $client->confirmOrderReference($apiCallParams);
-        } catch (\Exception $expected) {
+            $client->confirmOrderReference($apiCallParams);
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/should be a boolean value/i', strval($expected));
         }
     }
@@ -502,7 +504,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->cancelOrderReference($apiCallParams);
+        $client->cancelOrderReference($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -527,7 +529,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->closeOrderReference($apiCallParams);
+        $client->closeOrderReference($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -552,7 +554,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->closeAuthorization($apiCallParams);
+        $client->closeAuthorization($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -582,7 +584,7 @@ class ClientTest extends TestCase
         $apiCallParams = $parameters['apiCallParams'];
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->authorize($apiCallParams);
+        $client->authorize($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -606,7 +608,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->getAuthorizationDetails($apiCallParams);
+        $client->getAuthorizationDetails($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -635,7 +637,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->capture($apiCallParams);
+        $client->capture($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -659,7 +661,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->getCaptureDetails($apiCallParams);
+        $client->getCaptureDetails($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -688,7 +690,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->refund($apiCallParams);
+        $client->refund($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -712,7 +714,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->getRefundDetails($apiCallParams);
+        $client->getRefundDetails($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -735,7 +737,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->getMerchantAccountStatus($apiCallParams);
+        $client->getMerchantAccountStatus($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -758,7 +760,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->getServiceStatus($apiCallParams);
+        $client->getServiceStatus($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -792,7 +794,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->createOrderReferenceForId($apiCallParams);
+        $client->createOrderReferenceForId($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -818,7 +820,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->getBillingAgreementDetails($apiCallParams);
+        $client->getBillingAgreementDetails($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -847,7 +849,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->setBillingAgreementDetails($apiCallParams);
+        $client->setBillingAgreementDetails($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -879,7 +881,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->setBillingAgreementDetails($apiCallParams);
+        $client->setBillingAgreementDetails($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -911,7 +913,7 @@ class ClientTest extends TestCase
         $expectedParameters['BillingAgreementAttributes.SubscriptionAmount.CurrencyCode'] = 'USD'; # default from client
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->setBillingAgreementDetails($apiCallParams);
+        $client->setBillingAgreementDetails($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -935,7 +937,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->confirmBillingAgreement($apiCallParams);
+        $client->confirmBillingAgreement($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -961,7 +963,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->confirmBillingAgreement($apiCallParams);
+        $client->confirmBillingAgreement($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -985,7 +987,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->validateBillingAgreement($apiCallParams);
+        $client->validateBillingAgreement($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -1022,7 +1024,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->authorizeOnBillingAgreement($apiCallParams);
+        $client->authorizeOnBillingAgreement($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -1047,7 +1049,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->closeBillingAgreement($apiCallParams);
+        $client->closeBillingAgreement($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -1070,7 +1072,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->getMerchantNotificationConfiguration($apiCallParams);
+        $client->getMerchantNotificationConfiguration($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -1099,7 +1101,7 @@ class ClientTest extends TestCase
 
         $expectedStringParams = $this->callPrivateMethod($client, 'calculateSignatureAndParametersToString', $expectedParameters);
 
-        $response = $client->setMerchantNotificationConfiguration($apiCallParams);
+        $client->setMerchantNotificationConfiguration($apiCallParams);
 
         $apiParametersString = $client->getParameters();
 
@@ -1108,14 +1110,11 @@ class ClientTest extends TestCase
 
     public function testCharge()
     {
-        $client = new Client($this->configParams);
-        $apiCallParams = ['amazon_reference_id' => 'S01-TEST'];
-
         try {
             $client = new Client($this->configParams);
             $apiCallParams = ['amazon_reference_id' => ''];
             $client->charge($apiCallParams);
-        } catch (\Exception $expected) {
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/key amazon_order_reference_id or amazon_billing_agreement_id is null and is a required parameter./i', strval($expected));
         }
 
@@ -1123,7 +1122,7 @@ class ClientTest extends TestCase
             $client = new Client($this->configParams);
             $apiCallParams = ['amazon_reference_id' => 'T01'];
             $client->charge($apiCallParams);
-        } catch (\Exception $expected) {
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/Invalid Amazon Reference ID./i', strval($expected));
         }
     }
@@ -1134,7 +1133,7 @@ class ClientTest extends TestCase
             $this->configParams['region'] = '';
             $client = new Client($this->configParams);
             $client->getUserInfo('Atza');
-        } catch (\Exception $expected) {
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/is a required parameter./i', strval($expected));
         }
 
@@ -1142,7 +1141,7 @@ class ClientTest extends TestCase
             $this->configParams['region'] = 'us';
             $client = new Client($this->configParams);
             $client->getUserInfo(null);
-        } catch (\Exception $expected) {
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/Access Token is a required parameter and is not set./i', strval($expected));
         }
     }
@@ -1177,7 +1176,7 @@ class ClientTest extends TestCase
             $url = 'https://www.amazon.com/OffAmazonPayments_Sandbox/2013-01-01';
             $client->setMwsServiceUrl($url);
             $this->callPrivateMethod($client, 'invokePost', null);
-        } catch (\Exception $expected) {
+        } catch (Exception $expected) {
             $this->assertMatchesRegularExpression('/Maximum number of retry attempts./i', strval($expected));
         }
     }
@@ -1240,9 +1239,6 @@ class ClientTest extends TestCase
 
     private function setParametersAndPost($fieldMappings, $action)
     {
-        $expectedParameters = [];
-        $apiCallParams = [];
-
         $parameters = $this->setDefaultValues($fieldMappings);
         $expectedParameters = $parameters['expectedParameters'];
         $apiCallParams = $parameters['apiCallParams'];
@@ -1301,11 +1297,10 @@ class ClientTest extends TestCase
 
     private function callPrivateMethod($client, $methodName, $parameters)
     {
-        $reflectionClass = new \ReflectionClass("AmazonPay\Client");
+        $reflectionClass = new ReflectionClass("AmazonPay\Client");
         $reflectionMethod = $reflectionClass->getMethod($methodName);
         $reflectionMethod->setAccessible(true);
-        $expectedStringParams = $reflectionMethod->invoke($client, $parameters);
 
-        return $expectedStringParams;
+        return $reflectionMethod->invoke($client, $parameters);
     }
 }

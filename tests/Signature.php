@@ -2,6 +2,8 @@
 
 namespace AmazonPay;
 
+use Exception;
+
 class Signature
 {
     public const MWS_VERSION = '2013-01-01';
@@ -52,9 +54,8 @@ class Signature
     private function calculateSignature($parameters)
     {
         $this->createServiceUrl();
-        $signature = $this->signParameters($parameters);
 
-        return $signature;
+        return $this->signParameters($parameters);
     }
 
     /**
@@ -89,14 +90,12 @@ class Signature
     private function signParameters(array $parameters)
     {
         $signatureVersion = $parameters['SignatureVersion'];
-        $algorithm = 'HmacSHA1';
-        $stringToSign = null;
         if (2 === $signatureVersion) {
             $algorithm = 'HmacSHA256';
             $parameters['SignatureMethod'] = $algorithm;
             $stringToSign = $this->calculateStringToSignV2($parameters);
         } else {
-            throw new \Exception('Invalid Signature Version specified');
+            throw new Exception('Invalid Signature Version specified');
         }
 
         return $this->sign($stringToSign, $algorithm);
@@ -150,18 +149,10 @@ class Signature
         } elseif ($algorithm === 'HmacSHA256') {
             $hash = 'sha256';
         } else {
-            throw new \Exception('Non-supported signing method specified');
+            throw new Exception('Non-supported signing method specified');
         }
 
         return base64_encode(hash_hmac($hash, $data, $this->config['secret_key'], true));
-    }
-
-    /**
-     * Formats date as ISO 8601 timestamp
-     */
-    private function getFormattedTimestamp()
-    {
-        return gmdate("Y-m-d\TH:i:s.\\0\\0\\0\\Z", time());
     }
 
     private function createServiceUrl()
@@ -175,10 +166,10 @@ class Signature
                 $this->mwsServiceUrl = 'https://'.$this->mwsEndpointUrl.'/'.$this->modePath.'/'.self::MWS_VERSION;
                 $this->mwsEndpointPath = '/'.$this->modePath.'/'.self::MWS_VERSION;
             } else {
-                throw new \Exception($region.' is not a valid region');
+                throw new Exception($region.' is not a valid region');
             }
         } else {
-            throw new \Exception("config['region'] is a required parameter and is not set");
+            throw new Exception("config['region'] is a required parameter and is not set");
         }
     }
 }

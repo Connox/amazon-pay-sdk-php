@@ -2,6 +2,8 @@
 
 namespace AmazonPay;
 
+use Exception;
+
 /**
  * Class HttpCurl
  * Handles Curl POST function for all requests
@@ -89,9 +91,8 @@ class HttpCurl implements HttpCurlInterface
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $parameters);
         curl_setopt($ch, CURLOPT_HEADER, false);
-        $response = $this->execute($ch);
 
-        return $response;
+        return $this->execute($ch);
     }
 
     /**
@@ -108,9 +109,7 @@ class HttpCurl implements HttpCurlInterface
             $this->headerArray[] = 'x-amz-access-token : '.$this->accessToken;
         }
 
-        $response = $this->execute($ch);
-
-        return $response;
+        return $this->execute($ch);
     }
 
     /**
@@ -120,8 +119,6 @@ class HttpCurl implements HttpCurlInterface
      */
     protected function execute($ch)
     {
-        $response = '';
-
         // Ensure we never send the "Expect: 100-continue" header
         $this->headerArray[] = 'Expect:';
         curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headerArray);
@@ -130,7 +127,7 @@ class HttpCurl implements HttpCurlInterface
         if ($response === false) {
             $error_msg = 'Unable to post request, underlying exception of '.curl_error($ch);
             curl_close($ch);
-            throw new \Exception($error_msg);
+            throw new Exception($error_msg);
         } else {
             $this->curlResponseInfo = curl_getinfo($ch);
         }

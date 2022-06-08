@@ -2,6 +2,8 @@
 
 namespace AmazonPay;
 
+use SimpleXMLElement;
+
 /**
  * ResponseParser
  * Methods provided to convert the Response from the POST to XML, Array or JSON
@@ -71,9 +73,7 @@ class ResponseParser implements ResponseInterface
      */
     public function getOrderReferenceDetailsStatus($response)
     {
-        $oroStatus = $this->getStatus('GetORO', '//GetORO:OrderReferenceStatus', $response);
-
-        return $oroStatus;
+        return $this->getStatus('GetORO', '//GetORO:OrderReferenceStatus', $response);
     }
 
     /**
@@ -81,16 +81,14 @@ class ResponseParser implements ResponseInterface
      */
     public function getBillingAgreementDetailsStatus($response)
     {
-        $baStatus = $this->getStatus('GetBA', '//GetBA:BillingAgreementStatus', $response);
-
-        return $baStatus;
+        return $this->getStatus('GetBA', '//GetBA:BillingAgreementStatus', $response);
     }
 
     private function getStatus($type, $path, $response)
     {
-        $data = new \SimpleXMLElement($response);
+        $data = new SimpleXMLElement($response);
         $namespaces = $data->getNamespaces(true);
-        foreach ($namespaces as $key => $value) {
+        foreach ($namespaces as $value) {
             $namespace = $value;
         }
         $data->registerXPathNamespace($type, $namespace);

@@ -2,6 +2,8 @@
 
 namespace AmazonPay;
 
+use Exception;
+use InvalidArgumentException;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 
@@ -81,10 +83,10 @@ class Client implements ClientInterface, LoggerAwareInterface
             if (is_array($configArray)) {
                 $this->checkConfigKeys($configArray);
             } else {
-                throw new \Exception('$config is of the incorrect type '.gettype($configArray).' and should be of the type array');
+                throw new Exception('$config is of the incorrect type '.gettype($configArray).' and should be of the type array');
             }
         } else {
-            throw new \Exception('$config cannot be null.');
+            throw new Exception('$config cannot be null.');
         }
     }
 
@@ -93,9 +95,7 @@ class Client implements ClientInterface, LoggerAwareInterface
      */
     private function logMessage($message)
     {
-        if ($this->logger) {
-            $this->logger->debug($message);
-        }
+        $this->logger?->debug($message);
     }
 
     /**
@@ -122,11 +122,11 @@ class Client implements ClientInterface, LoggerAwareInterface
 
             if ($jsonError != 0) {
                 $errorMsg = 'Error with message - content is not in json format'.$this->getErrorMessageForJsonError($jsonError).' '.$configArray;
-                throw new \Exception($errorMsg);
+                throw new Exception($errorMsg);
             }
         } else {
             $errorMsg = '$config is not a Json File path or the Json File was not found in the path provided';
-            throw new \Exception($errorMsg);
+            throw new Exception($errorMsg);
         }
 
         return $configArray;
@@ -146,7 +146,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             if (array_key_exists($key, $this->config)) {
                 $this->config[$key] = $value;
             } else {
-                throw new \Exception('Key '.$key.' is either not part of the configuration or has incorrect Key name.
+                throw new Exception('Key '.$key.' is either not part of the configuration or has incorrect Key name.
                 check the config array key names to match your key names of your config array', 1);
             }
         }
@@ -161,23 +161,13 @@ class Client implements ClientInterface, LoggerAwareInterface
      */
     private function getErrorMessageForJsonError($jsonError)
     {
-        switch ($jsonError) {
-            case JSON_ERROR_DEPTH:
-                return ' - maximum stack depth exceeded.';
-                break;
-            case JSON_ERROR_STATE_MISMATCH:
-                return ' - invalid or malformed JSON.';
-                break;
-            case JSON_ERROR_CTRL_CHAR:
-                return ' - control character error.';
-                break;
-            case JSON_ERROR_SYNTAX:
-                return ' - syntax error.';
-                break;
-            default:
-                return '.';
-                break;
-        }
+        return match ($jsonError) {
+            JSON_ERROR_DEPTH => ' - maximum stack depth exceeded.',
+            JSON_ERROR_STATE_MISMATCH => ' - invalid or malformed JSON.',
+            JSON_ERROR_CTRL_CHAR => ' - control character error.',
+            JSON_ERROR_SYNTAX => ' - syntax error.',
+            default => '.',
+        };
     }
 
     /**
@@ -189,7 +179,7 @@ class Client implements ClientInterface, LoggerAwareInterface
         if (is_bool($value)) {
             $this->config['sandbox'] = $value;
         } else {
-            throw new \Exception('sandbox value '.$value.' is of type '.gettype($value).' and should be a boolean value');
+            throw new Exception('sandbox value '.$value.' is of type '.gettype($value).' and should be a boolean value');
         }
     }
 
@@ -202,7 +192,7 @@ class Client implements ClientInterface, LoggerAwareInterface
         if (!empty($value)) {
             $this->config['client_id'] = $value;
         } else {
-            throw new \Exception('setter value for client ID provided is empty');
+            throw new Exception('setter value for client ID provided is empty');
         }
     }
 
@@ -215,7 +205,7 @@ class Client implements ClientInterface, LoggerAwareInterface
         if (!empty($value)) {
             $this->config['app_id'] = $value;
         } else {
-            throw new \Exception('setter value for app ID provided is empty');
+            throw new Exception('setter value for app ID provided is empty');
         }
     }
 
@@ -265,7 +255,7 @@ class Client implements ClientInterface, LoggerAwareInterface
         if (array_key_exists(strtolower($name), $this->config)) {
             return $this->config[strtolower($name)];
         } else {
-            throw new \Exception('Key '.$name.' is either not a part of the configuration array config or the '.$name.' does not match the key name in the config array', 1);
+            throw new Exception('Key '.$name.' is either not a part of the configuration array config or the '.$name.' does not match the key name in the config array', 1);
         }
     }
 
@@ -307,7 +297,7 @@ class Client implements ClientInterface, LoggerAwareInterface
         $this->profileEndpointUrl();
 
         if (empty($accessToken)) {
-            throw new \InvalidArgumentException('Access Token is a required parameter and is not set');
+            throw new InvalidArgumentException('Access Token is a required parameter and is not set');
         }
 
         // To make sure double encoding doesn't occur decode first and encode again.
@@ -325,11 +315,11 @@ class Client implements ClientInterface, LoggerAwareInterface
         // Web apps and Mobile apps will have different Client ID's but App ID should be the same
         // As long as one of these matches, from a security perspective, we have done our due diligence
         if (!isset($data->aud)) {
-            throw new \Exception('The tokeninfo API call did not succeed');
+            throw new Exception('The tokeninfo API call did not succeed');
         }
         if (($data->aud != $this->config['client_id']) && ($data->app_id != $this->config['app_id'])) {
             // The access token does not belong to us
-            throw new \Exception('The Access Token belongs to neither your Client ID nor App ID');
+            throw new Exception('The Access Token belongs to neither your Client ID nor App ID');
         }
 
         // Exchange the access token for user profile
@@ -340,9 +330,7 @@ class Client implements ClientInterface, LoggerAwareInterface
         $httpCurlRequest->setHttpHeader();
         $response = $httpCurlRequest->httpGet($url);
 
-        $userInfo = json_decode($response, true);
-
-        return $userInfo;
+        return json_decode($response, true);
     }
 
     /**
@@ -365,11 +353,11 @@ class Client implements ClientInterface, LoggerAwareInterface
             // Ensure that no unexpected type coercions have happened
             if ($param === 'capture_now' || $param === 'confirm_now' || $param === 'inherit_shipping_address' || $param === 'request_payment_authorization' || $param === 'expect_immediate_authorization') {
                 if (!is_bool($value)) {
-                    throw new \Exception($param.' value '.$value.' is of type '.gettype($value).' and should be a boolean value');
+                    throw new Exception($param.' value '.$value.' is of type '.gettype($value).' and should be a boolean value');
                 }
             } elseif ($param === 'provider_credit_details' || $param === 'provider_credit_reversal_details' || $param === 'order_item_categories' || $param === 'notification_configuration_list') {
                 if (!is_array($value)) {
-                    throw new \Exception($param.' value '.$value.' is of type '.gettype($value).' and should be an array value');
+                    throw new Exception($param.' value '.$value.' is of type '.gettype($value).' and should be an array value');
                 }
             }
 
@@ -393,9 +381,8 @@ class Client implements ClientInterface, LoggerAwareInterface
         }
 
         $parameters = $this->setDefaultValues($parameters, $fieldMappings, $requestParameters);
-        $responseObject = $this->calculateSignatureAndPost($parameters);
 
-        return $responseObject;
+        return $this->calculateSignatureAndPost($parameters);
     }
 
     /**
@@ -410,9 +397,7 @@ class Client implements ClientInterface, LoggerAwareInterface
         $response = $this->invokePost($parametersString);
 
         // Send this response as args to ResponseParser class which will return the object of the class.
-        $responseObject = new ResponseParser($response);
-
-        return $responseObject;
+        return new ResponseParser($response);
     }
 
     /**
@@ -472,14 +457,14 @@ class Client implements ClientInterface, LoggerAwareInterface
     {
         $configurationIndex = 0;
         if (!is_array($configuration)) {
-            throw new \Exception('Notification Configuration List value '.$configuration.' is of type '.gettype($configuration).' and should be an array value');
+            throw new Exception('Notification Configuration List value '.$configuration.' is of type '.gettype($configuration).' and should be an array value');
         }
         foreach ($configuration as $url => $events) {
             $configurationIndex = $configurationIndex + 1;
             $parameters['NotificationConfigurationList.NotificationConfiguration.'.$configurationIndex.'.NotificationUrl'] = $url;
             $eventIndex = 0;
             if (!is_array($events)) {
-                throw new \Exception('Notification Configuration Events value '.$events.' is of type '.gettype($events).' and should be an array value');
+                throw new Exception('Notification Configuration Events value '.$events.' is of type '.gettype($events).' and should be an array value');
             }
             foreach ($events as $event) {
                 $eventIndex = $eventIndex + 1;
@@ -508,7 +493,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'currency_code' => 'CreditAmount.CurrencyCode',
         ];
 
-        foreach ($providerCreditInfo as $key => $value) {
+        foreach ($providerCreditInfo as $value) {
             $value = array_change_key_case($value, CASE_LOWER);
             $providerIndex = $providerIndex + 1;
 
@@ -545,7 +530,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'currency_code' => 'CreditReversalAmount.CurrencyCode',
         ];
 
-        foreach ($providerCreditInfo as $key => $value) {
+        foreach ($providerCreditInfo as $value) {
             $value = array_change_key_case($value, CASE_LOWER);
             $providerIndex = $providerIndex + 1;
 
@@ -584,9 +569,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -617,9 +600,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -674,9 +655,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             }
         }
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -702,9 +681,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'next_page_token' => 'NextPageToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -746,9 +723,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -794,9 +769,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -834,9 +807,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             $requestParameters['currency_code'] = strtoupper($this->config['currency_code']);
         }
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -862,9 +833,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -891,9 +860,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -919,9 +886,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -961,9 +926,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -987,9 +950,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1025,9 +986,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1051,9 +1010,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1089,9 +1046,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1115,9 +1070,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1143,9 +1096,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1189,9 +1140,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1222,9 +1171,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1270,9 +1217,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             $requestParameters['currency_code'] = strtoupper($this->config['currency_code']);
         }
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1300,9 +1245,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1326,9 +1269,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1380,9 +1321,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1408,9 +1347,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1430,9 +1367,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1454,9 +1389,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1487,8 +1420,6 @@ class Client implements ClientInterface, LoggerAwareInterface
 
         $setParameters = $authorizeParameters = $confirmParameters = $requestParameters;
 
-        $chargeType = '';
-
         if (!empty($requestParameters['amazon_order_reference_id'])) {
             $chargeType = 'OrderReference';
         } elseif (!empty($requestParameters['amazon_billing_agreement_id'])) {
@@ -1510,10 +1441,10 @@ class Client implements ClientInterface, LoggerAwareInterface
                     $confirmParameters['amazon_billing_agreement_id'] = $requestParameters['amazon_reference_id'];
                     break;
                 default:
-                    throw new \Exception('Invalid Amazon Reference ID');
+                    throw new Exception('Invalid Amazon Reference ID');
             }
         } else {
-            throw new \Exception('key amazon_order_reference_id or amazon_billing_agreement_id is null and is a required parameter');
+            throw new Exception('key amazon_order_reference_id or amazon_billing_agreement_id is null and is a required parameter');
         }
 
         // Set the other parameters if the values are present
@@ -1530,9 +1461,7 @@ class Client implements ClientInterface, LoggerAwareInterface
 
         $authorizeParameters['capture_now'] = !empty($requestParameters['capture_now']) ? $requestParameters['capture_now'] : false;
 
-        $response = $this->makeChargeCalls($chargeType, $setParameters, $confirmParameters, $authorizeParameters);
-
-        return $response;
+        return $this->makeChargeCalls($chargeType, $setParameters, $confirmParameters, $authorizeParameters);
     }
 
     /**
@@ -1568,7 +1497,7 @@ class Client implements ClientInterface, LoggerAwareInterface
                 }
 
                 if ($oroStatus['State'] != 'Open' && $oroStatus['State'] != 'Draft') {
-                    throw new \Exception('The Order Reference is in the '.$oroStatus['State'].' State. It should be in the Draft or Open State');
+                    throw new Exception('The Order Reference is in the '.$oroStatus['State'].' State. It should be in the Draft or Open State');
                 }
 
                 return $response;
@@ -1598,13 +1527,13 @@ class Client implements ClientInterface, LoggerAwareInterface
                 }
 
                 if ($baStatus['State'] != 'Open' && $baStatus['State'] != 'Draft') {
-                    throw new \Exception('The Billing Agreement is in the '.$baStatus['State'].' State. It should be in the Draft or Open State');
+                    throw new Exception('The Billing Agreement is in the '.$baStatus['State'].' State. It should be in the Draft or Open State');
                 }
 
                 return $response;
 
             default:
-                throw new \Exception('Invalid Charge Type');
+                throw new Exception('Invalid Charge Type');
         }
     }
 
@@ -1627,9 +1556,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1651,9 +1578,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1684,9 +1609,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             'mws_auth_token' => 'MWSAuthToken',
         ];
 
-        $responseObject = $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
-
-        return $responseObject;
+        return $this->setParametersAndPost($parameters, $fieldMappings, $requestParameters);
     }
 
     /**
@@ -1705,7 +1628,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             // Ensure that no unexpected type coercions have happened
             if ($key === 'CaptureNow' || $key === 'ConfirmNow' || $key === 'InheritShippingAddress' || $key === 'RequestPaymentAuthorization') {
                 if (!is_bool($value)) {
-                    throw new \Exception($key.' value '.$value.' is of type '.gettype($value).' and should be a boolean value');
+                    throw new Exception($key.' value '.$value.' is of type '.gettype($value).' and should be a boolean value');
                 }
             }
 
@@ -1765,14 +1688,12 @@ class Client implements ClientInterface, LoggerAwareInterface
     private function signParameters(array $parameters)
     {
         $signatureVersion = $parameters['SignatureVersion'];
-        $algorithm = 'HmacSHA1';
-        $stringToSign = null;
         if (2 === $signatureVersion) {
             $algorithm = 'HmacSHA256';
             $parameters['SignatureMethod'] = $algorithm;
             $stringToSign = $this->calculateStringToSignV2($parameters);
         } else {
-            throw new \Exception('Invalid Signature Version specified');
+            throw new Exception('Invalid Signature Version specified');
         }
 
         return $this->sign($stringToSign, $algorithm);
@@ -1828,7 +1749,7 @@ class Client implements ClientInterface, LoggerAwareInterface
         } elseif ($algorithm === 'HmacSHA256') {
             $hash = 'sha256';
         } else {
-            throw new \Exception('Non-supported signing method specified');
+            throw new Exception('Non-supported signing method specified');
         }
 
         return base64_encode(hash_hmac($hash, $data, $this->config['secret_key'], true));
@@ -1849,13 +1770,10 @@ class Client implements ClientInterface, LoggerAwareInterface
      */
     private function invokePost($parameters)
     {
-        $response = [];
-        $statusCode = 200;
         $this->success = false;
 
         // Submit the request and read response body
         try {
-            $shouldRetry = true;
             $retries = 0;
             do {
                 try {
@@ -1882,11 +1800,11 @@ class Client implements ClientInterface, LoggerAwareInterface
                     } else {
                         $shouldRetry = false;
                     }
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     throw $e;
                 }
             } while ($shouldRetry);
-        } catch (\Exception $se) {
+        } catch (Exception $se) {
             throw $se;
         }
 
@@ -1914,7 +1832,7 @@ class Client implements ClientInterface, LoggerAwareInterface
             $delay = (int)(pow(4, $retries) * 100000) + 600000;
             usleep($delay);
         } else {
-            throw new \Exception('Error Code: '.$status.PHP_EOL.'Maximum number of retry attempts - '.$retries.' reached');
+            throw new Exception('Error Code: '.$status.PHP_EOL.'Maximum number of retry attempts - '.$retries.' reached');
         }
     }
 
@@ -1937,10 +1855,10 @@ class Client implements ClientInterface, LoggerAwareInterface
                 $this->mwsServiceUrl = 'https://'.$this->mwsEndpointUrl.'/'.$this->modePath.'/'.self::MWS_VERSION;
                 $this->mwsEndpointPath = '/'.$this->modePath.'/'.self::MWS_VERSION;
             } else {
-                throw new \Exception($region.' is not a valid region');
+                throw new Exception($region.' is not a valid region');
             }
         } else {
-            throw new \Exception("config['region'] is a required parameter and is not set");
+            throw new Exception("config['region'] is a required parameter and is not set");
         }
     }
 
@@ -1957,10 +1875,10 @@ class Client implements ClientInterface, LoggerAwareInterface
             if (array_key_exists($region, $this->regionMappings)) {
                 $this->profileEndpoint = 'https://'.$profileEnvt.'.'.$this->profileEndpointUrls[$region];
             } else {
-                throw new \Exception($region.' is not a valid region');
+                throw new Exception($region.' is not a valid region');
             }
         } else {
-            throw new \Exception("config['region'] is a required parameter and is not set");
+            throw new Exception("config['region'] is a required parameter and is not set");
         }
     }
 
