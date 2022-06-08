@@ -1,6 +1,7 @@
+name: Static analysis
+
 on: [push]
 
-name: Static analysis
 jobs:
 
     psalm:

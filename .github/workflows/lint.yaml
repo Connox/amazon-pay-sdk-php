@@ -1,6 +1,7 @@
+name: Linting
+
 on: [push]
 
-name: Linting
 jobs:
     php-cs-fixer:
         name: 'Code Style Fixer'
