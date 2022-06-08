@@ -2,3 +2,7 @@ vendor
 composer.lock
 amazon-pay.phar
 build
+
+.idea
+.php-cs-fixer.cache
+.phpunit.result.cache

@@ -1,3 +1,10 @@
+4.0.0 - June 2022
+- Pure composer package now
+- Requires php 8.0 or higher
+- Fixed issues with psr logger
+- Reorganized folders
+- Removed phar support
+
 3.7.1 - March 2021
 - Fixed Secuity issue - Sending access token via HTTP header instead of query string in URL for GetUserInfo API
 
@@ -20,8 +27,8 @@
 - Added additional attributes (success_url, failure_url, authorization_amount, currency_code) to ConfirmOrderReference.  See Amazon Pay Strong Customer Authentication (SCA) Upgrade Integration Guide for more information.
 
 3.3.2 - August 2018
-- Added method for listOrderReference API call 
-- Added method for listOrderReferenceByNextToken API call 
+- Added method for listOrderReference API call
+- Added method for listOrderReferenceByNextToken API call
 - Added new supplementary_data attribute for SetOrderAttributes and SetOrderReferenceDetails.
 
 3.3.1 - April 2018
@@ -71,13 +78,13 @@
 1.0.16
 - Added additional validation for IPN parsing.
 
-1.0.15 
+1.0.15
 - Added Soft Decline feature for Authorization Response
 
 1.0.14 - May 2015
-- Updated sample code and web server based examples for Order Reference object and Billing Agreement object 
+- Updated sample code and web server based examples for Order Reference object and Billing Agreement object
   containing orderLanguage parameter.
-- Updated library and added orderLanguage as an additional parameter in GetOrderReferenceDetails and 
+- Updated library and added orderLanguage as an additional parameter in GetOrderReferenceDetails and
   GetBillingAgreementDetails response objects.
 
 1.0.13 - March 2015
@@ -98,7 +105,7 @@
 
 1.0.10 -May 2014
 - Updated sample code and webserver based examples for using the Fast Authorization option. (No Library change needed)
-- Updated library and added 
+- Updated library and added
 	ProviderCreditList as an additional parameter in AuthorizationRequest and CaptureRequest.
 	ProviderCreditReversalList as an additional parameter in RefundRequest.
 	ProviderCreditSummaryList as an additional parameter in CaptureResponse and CaptureNotification.
@@ -140,8 +147,8 @@ is deprecated but will still function to support existing merchants.
 receiving an authorization IPN.
 - Added additional property to setup cert folder so that additional certificates
 can be used during SSL verification check
-- Modified sample code for verifying refund is completed to accept a RefundDetails object 
-in place of a GetRefundDetailsResponse object, so that it can be used from either the RefundResponse 
+- Modified sample code for verifying refund is completed to accept a RefundDetails object
+in place of a GetRefundDetailsResponse object, so that it can be used from either the RefundResponse
 or getRefundDetailsResponse object references.
 
 1.0.3 - October 2013
