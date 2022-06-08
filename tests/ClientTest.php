@@ -1,26 +1,27 @@
 <?php
+
 namespace AmazonPay;
 
 use PHPUnit\Framework\TestCase;
 
 class ClientTest extends TestCase
 {
-    private $configParams = array(
-                'merchant_id'          => 'MERCHANT1234567',
-                'access_key'           => 'ABCDEFGHI1JKLMN2O7',
-                'secret_key'           => "abc123Def456gHi789jKLmpQ987rstu6vWxyz",
-                'currency_code'        => 'usd',
-                'client_id'            => 'amzn1.application-oa2-client.45789c45a8f34927830be1d9e029f480',
-                'region'               => 'us',
-                'sandbox'              => true,
-                'platform_id'          => 'test',
-                'application_name'     => 'sdk testing',
-                'application_version'  => '1.0',
-                'proxy_host'           => null,
-                'proxy_port'           => -1,
-                'proxy_username'       => null,
-                'proxy_Password'       => null
-            );
+    private $configParams = [
+        'merchant_id' => 'MERCHANT1234567',
+        'access_key' => 'ABCDEFGHI1JKLMN2O7',
+        'secret_key' => 'abc123Def456gHi789jKLmpQ987rstu6vWxyz',
+        'currency_code' => 'usd',
+        'client_id' => 'amzn1.application-oa2-client.45789c45a8f34927830be1d9e029f480',
+        'region' => 'us',
+        'sandbox' => true,
+        'platform_id' => 'test',
+        'application_name' => 'sdk testing',
+        'application_version' => '1.0',
+        'proxy_host' => null,
+        'proxy_port' => -1,
+        'proxy_username' => null,
+        'proxy_Password' => null,
+    ];
 
     public function testConfigArray()
     {
@@ -29,30 +30,30 @@ class ClientTest extends TestCase
         $this->assertTrue((bool)$client->__get('sandbox'));
 
         // Test four cases in which sandbox is in constructor with an array
-        $client = new Client(array('sandbox' => false));
+        $client = new Client(['sandbox' => false]);
         $this->assertFalse((bool)$client->__get('sandbox'));
 
         try {
-          $client = new Client(array('sandbox' => 'false'));
+            $client = new Client(['sandbox' => 'false']);
         } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/should be a boolean value/i', strval($expected));
         }
 
-        $client = new Client(array('sandbox' => true));
+        $client = new Client(['sandbox' => true]);
         $this->assertTrue((bool)$client->__get('sandbox'));
 
         try {
-            $client = new Client(array('sandbox' => 'true'));
+            $client = new Client(['sandbox' => 'true']);
         } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/should be a boolean value/i', strval($expected));
         }
 
         // Test that string trimming is working as intended
-        $client = new Client(array(
-            'region'        => 'us  ', // two spaces at end
+        $client = new Client([
+            'region' => 'us  ', // two spaces at end
             'currency_code' => '  usd', // two spaces at beginning
-            'client_id'     => '  A113  ' // two spaces and beginning and end
-        ));
+            'client_id' => '  A113  ', // two spaces and beginning and end
+        ]);
         $this->assertEquals('us', $client->__get('region'));
         $this->assertEquals('usd', $client->__get('currency_code'));
         $this->assertEquals('A113', $client->__get('client_id'));
@@ -67,32 +68,31 @@ class ClientTest extends TestCase
 
         // Test passing in invalid keys to constructor
         try {
-            $configParams = array(
+            $configParams = [
                 'a' => 'A',
-                'b' => 'B'
-            );
+                'b' => 'B',
+            ];
             $client = new Client($configParams);
         } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/is either not part of the configuration or has incorrect Key name./i', strval($expected));
         }
 
         // Test passing in override service URL for MWS API endpoint
-        $client = new Client(array('override_service_url' => 'https://over.ride'));
+        $client = new Client(['override_service_url' => 'https://over.ride']);
         $this->assertEquals('https://over.ride', $client->__get('override_service_url'));
 
         // Test passing in an empty array to construtor
         try {
-            $configParams = array();
+            $configParams = [];
             $client = new Client($configParams);
         } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/$config cannot be null./i', strval($expected));
         }
-
     }
 
     public function testJsonFile()
     {
-        $configParams = __DIR__."/config/sandbox_true_bool.json";
+        $configParams = __DIR__.'/config/sandbox_true_bool.json';
         $client = new Client($configParams);
 
         $this->assertTrue((bool)$client->__get('sandbox'));
@@ -106,29 +106,29 @@ class ClientTest extends TestCase
         $this->assertEquals('1.0', $client->__get('application_version'));
 
         try {
-            $configParams = __DIR__."/config/sandbox_true_string.json";
+            $configParams = __DIR__.'/config/sandbox_true_string.json';
             $client = new Client($configParams);
         } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/should be a boolean value/i', strval($expected));
         }
 
-        $configParams = __DIR__."/config/sandbox_false_bool.json";
+        $configParams = __DIR__.'/config/sandbox_false_bool.json';
         $client = new Client($configParams);
         $this->assertFalse((bool)$client->__get('sandbox'));
 
-        $configParams = __DIR__."/config/sandbox_none.json";
+        $configParams = __DIR__.'/config/sandbox_none.json';
         $client = new Client($configParams);
         $this->assertFalse((bool)$client->__get('sandbox'));
 
         try {
-            $configParams = __DIR__."/config/sandbox_false_string.json";
+            $configParams = __DIR__.'/config/sandbox_false_string.json';
             $client = new Client($configParams);
         } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/should be a boolean value/i', strval($expected));
         }
 
         try {
-            $configParams = "abc.json";
+            $configParams = 'abc.json';
             $client = new Client($configParams);
         } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/is not a Json File path or the Json File./i', strval($expected));
@@ -154,13 +154,13 @@ class ClientTest extends TestCase
     public function testGetOrderReferenceDetails()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'               => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_order_reference_id' => 'AmazonOrderReferenceId',
-            'address_consent_token'     => 'AddressConsentToken',
-            'access_token'              => 'AccessToken',
-            'mws_auth_token'            => 'MWSAuthToken'
-        );
+            'address_consent_token' => 'AddressConsentToken',
+            'access_token' => 'AccessToken',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'GetOrderReferenceDetails';
 
@@ -179,19 +179,18 @@ class ClientTest extends TestCase
     public function testListOrderReference()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'        => 'SellerId',
-            'mws_auth_token'     => 'MWSAuthToken',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'mws_auth_token' => 'MWSAuthToken',
 
-            'query_id'           => 'QueryId',
-            'query_id_type'      => 'QueryIdType',
-            'page_size'          => 'PageSize',
+            'query_id' => 'QueryId',
+            'query_id_type' => 'QueryIdType',
+            'page_size' => 'PageSize',
             'created_start_time' => 'CreatedTimeRange.StartTime',
-            'created_end_time'   => 'CreatedTimeRange.EndTime',
-            'sort_order'         => 'SortOrder',
-            'order_status_list'  => array()
-
-        );
+            'created_end_time' => 'CreatedTimeRange.EndTime',
+            'sort_order' => 'SortOrder',
+            'order_status_list' => [],
+        ];
 
         $action = 'ListOrderReference';
         $parameters = $this->setParametersAndPost($fieldMappings, $action);
@@ -208,9 +207,9 @@ class ClientTest extends TestCase
         $apiParametersString = $client->getParameters();
 
         // Hack to remove mismatched Signature (due to param mismatch), then remove Signature from both to eliminate mismatch
-        $apiParametersString = preg_replace("/&PaymentDomain=[^&]*/", "", $apiParametersString);
-        $apiParametersString = preg_replace("/&Signature=[^&]*/", "", $apiParametersString);
-        $expectedStringParams = preg_replace("/&Signature=[^&]*/", "", $expectedStringParams);
+        $apiParametersString = preg_replace('/&PaymentDomain=[^&]*/', '', $apiParametersString);
+        $apiParametersString = preg_replace('/&Signature=[^&]*/', '', $apiParametersString);
+        $expectedStringParams = preg_replace('/&Signature=[^&]*/', '', $expectedStringParams);
 
         $this->assertEquals($apiParametersString, $expectedStringParams);
     }
@@ -218,17 +217,16 @@ class ClientTest extends TestCase
     public function testListOrderReferenceByNextToken()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'     => 'SellerId',
-            'mws_auth_token'  => 'MWSAuthToken',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'mws_auth_token' => 'MWSAuthToken',
 
-            'next_page_token' => 'NextPageToken'
-        );
+            'next_page_token' => 'NextPageToken',
+        ];
 
         $action = 'ListOrderReferenceByNextToken';
 
         $parameters = $this->setParametersAndPost($fieldMappings, $action);
-
 
         $expectedParameters = $parameters['expectedParameters'];
         $apiCallParams = $parameters['apiCallParams'];
@@ -245,20 +243,20 @@ class ClientTest extends TestCase
     public function testSetOrderReferenceDetails()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'Merchant_Id'                   => 'SellerId',
-            'amazon_order_reference_id'     => 'AmazonOrderReferenceId',
-            'amount'                        => 'OrderReferenceAttributes.OrderTotal.Amount',
-            'currency_code'                 => 'OrderReferenceAttributes.OrderTotal.CurrencyCode',
-            'platform_id'                   => 'OrderReferenceAttributes.PlatformId',
-            'seller_note'                   => 'OrderReferenceAttributes.SellerNote',
-            'seller_order_id'               => 'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId',
-            'store_name'                    => 'OrderReferenceAttributes.SellerOrderAttributes.StoreName',
-            'custom_information'            => 'OrderReferenceAttributes.SellerOrderAttributes.CustomInformation',
-            'supplementary_data'            => 'OrderReferenceAttributes.SellerOrderAttributes.SupplementaryData',
+        $fieldMappings = [
+            'Merchant_Id' => 'SellerId',
+            'amazon_order_reference_id' => 'AmazonOrderReferenceId',
+            'amount' => 'OrderReferenceAttributes.OrderTotal.Amount',
+            'currency_code' => 'OrderReferenceAttributes.OrderTotal.CurrencyCode',
+            'platform_id' => 'OrderReferenceAttributes.PlatformId',
+            'seller_note' => 'OrderReferenceAttributes.SellerNote',
+            'seller_order_id' => 'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId',
+            'store_name' => 'OrderReferenceAttributes.SellerOrderAttributes.StoreName',
+            'custom_information' => 'OrderReferenceAttributes.SellerOrderAttributes.CustomInformation',
+            'supplementary_data' => 'OrderReferenceAttributes.SellerOrderAttributes.SupplementaryData',
             'request_payment_authorization' => 'OrderReferenceAttributes.RequestPaymentAuthorization',
-            'mws_auth_token'                => 'MWSAuthToken'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'SetOrderReferenceDetails';
 
@@ -278,23 +276,23 @@ class ClientTest extends TestCase
     public function testSetOrderAttributesBeforeConfirm()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                       => 'SellerId',
-            'amazon_order_reference_id'         => 'AmazonOrderReferenceId',
-            'amount'                            => 'OrderAttributes.OrderTotal.Amount',
-            'currency_code'                     => 'OrderAttributes.OrderTotal.CurrencyCode',
-            'platform_id'                       => 'OrderAttributes.PlatformId',
-            'seller_note'                       => 'OrderAttributes.SellerNote',
-            'seller_order_id'                   => 'OrderAttributes.SellerOrderAttributes.SellerOrderId',
-            'store_name'                        => 'OrderAttributes.SellerOrderAttributes.StoreName',
-            'custom_information'                => 'OrderAttributes.SellerOrderAttributes.CustomInformation',
-            'supplementary_data'                => 'OrderAttributes.SellerOrderAttributes.SupplementaryData',
-            'request_payment_authorization'     => 'OrderAttributes.RequestPaymentAuthorization',
-            'payment_service_provider_id'       => 'OrderAttributes.PaymentServiceProviderAttributes.PaymentServiceProviderId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'amazon_order_reference_id' => 'AmazonOrderReferenceId',
+            'amount' => 'OrderAttributes.OrderTotal.Amount',
+            'currency_code' => 'OrderAttributes.OrderTotal.CurrencyCode',
+            'platform_id' => 'OrderAttributes.PlatformId',
+            'seller_note' => 'OrderAttributes.SellerNote',
+            'seller_order_id' => 'OrderAttributes.SellerOrderAttributes.SellerOrderId',
+            'store_name' => 'OrderAttributes.SellerOrderAttributes.StoreName',
+            'custom_information' => 'OrderAttributes.SellerOrderAttributes.CustomInformation',
+            'supplementary_data' => 'OrderAttributes.SellerOrderAttributes.SupplementaryData',
+            'request_payment_authorization' => 'OrderAttributes.RequestPaymentAuthorization',
+            'payment_service_provider_id' => 'OrderAttributes.PaymentServiceProviderAttributes.PaymentServiceProviderId',
             'payment_service_provider_order_id' => 'OrderAttributes.PaymentServiceProviderAttributes.PaymentServiceProviderOrderId',
-            'order_item_categories'             => array(),
-            'mws_auth_token'                    => 'MWSAuthToken'
-        );
+            'order_item_categories' => [],
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'SetOrderAttributes';
 
@@ -313,25 +311,26 @@ class ClientTest extends TestCase
         $this->assertEquals($apiParametersString, $expectedStringParams);
     }
 
-
-    /* Call is same as BeforeConfirm call except the amount and currency_code fields are omitted */
+    /**
+     * Call is same as BeforeConfirm call except the amount and currency_code fields are omitted
+     */
     public function testSetOrderAttributesAfterConfirm()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                       => 'SellerId',
-            'amazon_order_reference_id'         => 'AmazonOrderReferenceId',
-            'platform_id'                       => 'OrderAttributes.PlatformId',
-            'seller_note'                       => 'OrderAttributes.SellerNote',
-            'seller_order_id'                   => 'OrderAttributes.SellerOrderAttributes.SellerOrderId',
-            'store_name'                        => 'OrderAttributes.SellerOrderAttributes.StoreName',
-            'custom_information'                => 'OrderAttributes.SellerOrderAttributes.CustomInformation',
-            'request_payment_authorization'     => 'OrderAttributes.RequestPaymentAuthorization',
-            'payment_service_provider_id'       => 'OrderAttributes.PaymentServiceProviderAttributes.PaymentServiceProviderId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'amazon_order_reference_id' => 'AmazonOrderReferenceId',
+            'platform_id' => 'OrderAttributes.PlatformId',
+            'seller_note' => 'OrderAttributes.SellerNote',
+            'seller_order_id' => 'OrderAttributes.SellerOrderAttributes.SellerOrderId',
+            'store_name' => 'OrderAttributes.SellerOrderAttributes.StoreName',
+            'custom_information' => 'OrderAttributes.SellerOrderAttributes.CustomInformation',
+            'request_payment_authorization' => 'OrderAttributes.RequestPaymentAuthorization',
+            'payment_service_provider_id' => 'OrderAttributes.PaymentServiceProviderAttributes.PaymentServiceProviderId',
             'payment_service_provider_order_id' => 'OrderAttributes.PaymentServiceProviderAttributes.PaymentServiceProviderOrderId',
-            'order_item_categories'             => array(),
-            'mws_auth_token'                    => 'MWSAuthToken'
-        );
+            'order_item_categories' => [],
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'SetOrderAttributes';
 
@@ -353,16 +352,16 @@ class ClientTest extends TestCase
     public function testConfirmOrderReferenceWithAllSCA()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'               => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_order_reference_id' => 'AmazonOrderReferenceId',
-            'mws_auth_token'            => 'MWSAuthToken',
-            'success_url'               => 'SuccessUrl',
-            'failure_url'               => 'FailureUrl',
-            'authorization_amount'      => 'AuthorizationAmount.Amount',
-            'currency_code'             => 'AuthorizationAmount.CurrencyCode',
-            'expect_immediate_authorization' => 'ExpectImmediateAuthorization'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+            'success_url' => 'SuccessUrl',
+            'failure_url' => 'FailureUrl',
+            'authorization_amount' => 'AuthorizationAmount.Amount',
+            'currency_code' => 'AuthorizationAmount.CurrencyCode',
+            'expect_immediate_authorization' => 'ExpectImmediateAuthorization',
+        ];
 
         $action = 'ConfirmOrderReference';
 
@@ -382,15 +381,15 @@ class ClientTest extends TestCase
     public function testConfirmOrderReferenceWithAllButCurrencyCodeSCA()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'               => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_order_reference_id' => 'AmazonOrderReferenceId',
-            'mws_auth_token'            => 'MWSAuthToken',
-            'success_url'               => 'SuccessUrl',
-            'failure_url'               => 'FailureUrl',
-            'authorization_amount'      => 'AuthorizationAmount.Amount',
-            'expect_immediate_authorization' => 'ExpectImmediateAuthorization'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+            'success_url' => 'SuccessUrl',
+            'failure_url' => 'FailureUrl',
+            'authorization_amount' => 'AuthorizationAmount.Amount',
+            'expect_immediate_authorization' => 'ExpectImmediateAuthorization',
+        ];
 
         $action = 'ConfirmOrderReference';
 
@@ -410,14 +409,14 @@ class ClientTest extends TestCase
     public function testConfirmOrderReferenceWithUrlSCA()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'               => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_order_reference_id' => 'AmazonOrderReferenceId',
-            'mws_auth_token'            => 'MWSAuthToken',
-            'success_url'               => 'SuccessUrl',
-            'failure_url'               => 'FailureUrl',
-            'expect_immediate_authorization' => 'ExpectImmediateAuthorization'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+            'success_url' => 'SuccessUrl',
+            'failure_url' => 'FailureUrl',
+            'expect_immediate_authorization' => 'ExpectImmediateAuthorization',
+        ];
 
         $action = 'ConfirmOrderReference';
 
@@ -437,11 +436,11 @@ class ClientTest extends TestCase
     public function testConfirmOrderReferenceWithoutSCA()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'               => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_order_reference_id' => 'AmazonOrderReferenceId',
-            'mws_auth_token'            => 'MWSAuthToken'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'ConfirmOrderReference';
 
@@ -462,25 +461,25 @@ class ClientTest extends TestCase
     * Test to validate ConfirmOrderReference API with ExpectImmediateAuthorization optional value as null
     * It is expected to accept only Boolean value (i.e true or false)
     */
-    public function testConfirmOrderReferenceWithExpectImmediateAuthorizationValueAsNull() {
+    public function testConfirmOrderReferenceWithExpectImmediateAuthorizationValueAsNull()
+    {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'               => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_order_reference_id' => 'AmazonOrderReferenceId',
-            'mws_auth_token'            => 'MWSAuthToken',
-            'success_url'               => 'SuccessUrl',
-            'failure_url'               => 'FailureUrl',
-            'authorization_amount'      => 'AuthorizationAmount.Amount',
-            'expect_immediate_authorization' => 'ExpectImmediateAuthorization'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+            'success_url' => 'SuccessUrl',
+            'failure_url' => 'FailureUrl',
+            'authorization_amount' => 'AuthorizationAmount.Amount',
+            'expect_immediate_authorization' => 'ExpectImmediateAuthorization',
+        ];
         $action = 'ConfirmOrderReference';
         $parameters = $this->setParametersAndPost($fieldMappings, $action);
         $apiCallParams = $parameters['apiCallParams'];
         $apiCallParams['expect_immediate_authorization'] = null;
-        try{
+        try {
             $response = $client->confirmOrderReference($apiCallParams);
-        }
-        catch (\Exception $expected) {
+        } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/should be a boolean value/i', strval($expected));
         }
     }
@@ -488,12 +487,12 @@ class ClientTest extends TestCase
     public function testCancelOrderReference()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'               => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_order_reference_id' => 'AmazonOrderReferenceId',
-            'cancelation_reason'        => 'CancelationReason',
-            'mws_auth_token'            => 'MWSAuthToken'
-        );
+            'cancelation_reason' => 'CancelationReason',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'CancelOrderReference';
 
@@ -513,12 +512,12 @@ class ClientTest extends TestCase
     public function testCloseOrderReference()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'               => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_order_reference_id' => 'AmazonOrderReferenceId',
-            'closure_reason'            => 'ClosureReason',
-            'mws_auth_token'            => 'MWSAuthToken'
-        );
+            'closure_reason' => 'ClosureReason',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'CloseOrderReference';
 
@@ -538,12 +537,12 @@ class ClientTest extends TestCase
     public function testCloseAuthorization()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'             => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_authorization_id' => 'AmazonAuthorizationId',
-            'closure_reason'          => 'ClosureReason',
-            'mws_auth_token'          => 'MWSAuthToken'
-        );
+            'closure_reason' => 'ClosureReason',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'CloseAuthorization';
 
@@ -563,18 +562,18 @@ class ClientTest extends TestCase
     public function testAuthorize()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                => 'SellerId',
-            'amazon_order_reference_id'  => 'AmazonOrderReferenceId',
-            'authorization_amount'       => 'AuthorizationAmount.Amount',
-            'currency_code'              => 'AuthorizationAmount.CurrencyCode',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'amazon_order_reference_id' => 'AmazonOrderReferenceId',
+            'authorization_amount' => 'AuthorizationAmount.Amount',
+            'currency_code' => 'AuthorizationAmount.CurrencyCode',
             'authorization_reference_id' => 'AuthorizationReferenceId',
-            'capture_now'                => 'CaptureNow',
-            'seller_authorization_note'  => 'SellerAuthorizationNote',
-            'transaction_timeout'        => 'TransactionTimeout',
-            'soft_descriptor'            => 'SoftDescriptor',
-            'mws_auth_token'             => 'MWSAuthToken'
-        );
+            'capture_now' => 'CaptureNow',
+            'seller_authorization_note' => 'SellerAuthorizationNote',
+            'transaction_timeout' => 'TransactionTimeout',
+            'soft_descriptor' => 'SoftDescriptor',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'Authorize';
 
@@ -593,11 +592,11 @@ class ClientTest extends TestCase
     public function testGetAuthorizationDetails()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'             => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_authorization_id' => 'AmazonAuthorizationId',
-            'mws_auth_token'          => 'MWSAuthToken'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'GetAuthorizationDetails';
 
@@ -617,16 +616,16 @@ class ClientTest extends TestCase
     public function testCapture()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'             => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_authorization_id' => 'AmazonAuthorizationId',
-            'capture_amount'          => 'CaptureAmount.Amount',
-            'currency_code'           => 'CaptureAmount.CurrencyCode',
-            'capture_reference_id'    => 'CaptureReferenceId',
-            'seller_capture_note'     => 'SellerCaptureNote',
-            'soft_descriptor'         => 'SoftDescriptor',
-            'mws_auth_token'          => 'MWSAuthToken'
-        );
+            'capture_amount' => 'CaptureAmount.Amount',
+            'currency_code' => 'CaptureAmount.CurrencyCode',
+            'capture_reference_id' => 'CaptureReferenceId',
+            'seller_capture_note' => 'SellerCaptureNote',
+            'soft_descriptor' => 'SoftDescriptor',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'Capture';
 
@@ -646,11 +645,11 @@ class ClientTest extends TestCase
     public function testGetCaptureDetails()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'       => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_capture_id' => 'AmazonCaptureId',
-            'mws_auth_token'    => 'MWSAuthToken'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'GetCaptureDetails';
 
@@ -670,16 +669,16 @@ class ClientTest extends TestCase
     public function testRefund()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'         => 'SellerId',
-            'amazon_capture_id'   => 'AmazonCaptureId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'amazon_capture_id' => 'AmazonCaptureId',
             'refund_reference_id' => 'RefundReferenceId',
-            'refund_amount'       => 'RefundAmount.Amount',
-            'currency_code'       => 'RefundAmount.CurrencyCode',
-            'seller_refund_note'  => 'SellerRefundNote',
-            'soft_descriptor'     => 'SoftDescriptor',
-            'mws_auth_token'      => 'MWSAuthToken'
-        );
+            'refund_amount' => 'RefundAmount.Amount',
+            'currency_code' => 'RefundAmount.CurrencyCode',
+            'seller_refund_note' => 'SellerRefundNote',
+            'soft_descriptor' => 'SoftDescriptor',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'Refund';
 
@@ -699,11 +698,11 @@ class ClientTest extends TestCase
     public function testGetRefundDetails()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'      => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_refund_id' => 'AmazonRefundId',
-            'mws_auth_token'   => 'MWSAuthToken'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'GetRefundDetails';
 
@@ -723,10 +722,10 @@ class ClientTest extends TestCase
     public function testGetMerchantAccountStatus()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'    => 'SellerId',
-            'mws_auth_token' => 'MWSAuthToken'
-        );
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'GetMerchantAccountStatus';
 
@@ -746,10 +745,10 @@ class ClientTest extends TestCase
     public function testGetServiceStatus()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'    => 'SellerId',
-            'mws_auth_token' => 'MWSAuthToken'
-        );
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'GetServiceStatus';
 
@@ -769,21 +768,21 @@ class ClientTest extends TestCase
     public function testCreateOrderReferenceForId()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'              => 'SellerId',
-            'id'                       => 'Id',
-            'id_type'                  => 'IdType',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'id' => 'Id',
+            'id_type' => 'IdType',
             'inherit_shipping_address' => 'InheritShippingAddress',
-            'confirm_now'              => 'ConfirmNow',
-            'amount'                   => 'OrderReferenceAttributes.OrderTotal.Amount',
-            'currency_code'            => 'OrderReferenceAttributes.OrderTotal.CurrencyCode',
-            'platform_id'              => 'OrderReferenceAttributes.PlatformId',
-            'seller_note'              => 'OrderReferenceAttributes.SellerNote',
-            'seller_order_id'          => 'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId',
-            'store_name'               => 'OrderReferenceAttributes.SellerOrderAttributes.StoreName',
-            'custom_information'       => 'OrderReferenceAttributes.SellerOrderAttributes.CustomInformation',
-            'mws_auth_token'           => 'MWSAuthToken'
-        );
+            'confirm_now' => 'ConfirmNow',
+            'amount' => 'OrderReferenceAttributes.OrderTotal.Amount',
+            'currency_code' => 'OrderReferenceAttributes.OrderTotal.CurrencyCode',
+            'platform_id' => 'OrderReferenceAttributes.PlatformId',
+            'seller_note' => 'OrderReferenceAttributes.SellerNote',
+            'seller_order_id' => 'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId',
+            'store_name' => 'OrderReferenceAttributes.SellerOrderAttributes.StoreName',
+            'custom_information' => 'OrderReferenceAttributes.SellerOrderAttributes.CustomInformation',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'CreateOrderReferenceForId';
 
@@ -803,13 +802,13 @@ class ClientTest extends TestCase
     public function testGetBillingAgreementDetails()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                 => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_billing_agreement_id' => 'AmazonBillingAgreementId',
-            'address_consent_token'       => 'AddressConsentToken',
-            'access_token'                => 'AccessToken',
-            'mws_auth_token'              => 'MWSAuthToken'
-        );
+            'address_consent_token' => 'AddressConsentToken',
+            'access_token' => 'AccessToken',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'GetBillingAgreementDetails';
 
@@ -829,16 +828,16 @@ class ClientTest extends TestCase
     public function testSetBillingAgreementDetailsWithoutSCA()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                 => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_billing_agreement_id' => 'AmazonBillingAgreementId',
-            'platform_id'                 => 'BillingAgreementAttributes.PlatformId',
-            'seller_note'                 => 'BillingAgreementAttributes.SellerNote',
+            'platform_id' => 'BillingAgreementAttributes.PlatformId',
+            'seller_note' => 'BillingAgreementAttributes.SellerNote',
             'seller_billing_agreement_id' => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.SellerBillingAgreementId',
-            'custom_information'          => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation',
-            'store_name'                  => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName',
-            'mws_auth_token'              => 'MWSAuthToken'
-        );
+            'custom_information' => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation',
+            'store_name' => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'SetBillingAgreementDetails';
 
@@ -858,19 +857,19 @@ class ClientTest extends TestCase
     public function testSetBillingAgreementDetailsWithSCA()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                 => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_billing_agreement_id' => 'AmazonBillingAgreementId',
-            'platform_id'                 => 'BillingAgreementAttributes.PlatformId',
-            'seller_note'                 => 'BillingAgreementAttributes.SellerNote',
+            'platform_id' => 'BillingAgreementAttributes.PlatformId',
+            'seller_note' => 'BillingAgreementAttributes.SellerNote',
             'seller_billing_agreement_id' => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.SellerBillingAgreementId',
-            'custom_information'          => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation',
-            'store_name'                  => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName',
-            'billing_agreement_type'      => 'BillingAgreementAttributes.BillingAgreementType',
-            'subscription_amount'         => 'BillingAgreementAttributes.SubscriptionAmount.Amount',
-            'currency_code'               => 'BillingAgreementAttributes.SubscriptionAmount.CurrencyCode',
-            'mws_auth_token'              => 'MWSAuthToken'
-        );
+            'custom_information' => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation',
+            'store_name' => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName',
+            'billing_agreement_type' => 'BillingAgreementAttributes.BillingAgreementType',
+            'subscription_amount' => 'BillingAgreementAttributes.SubscriptionAmount.Amount',
+            'currency_code' => 'BillingAgreementAttributes.SubscriptionAmount.CurrencyCode',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'SetBillingAgreementDetails';
 
@@ -890,18 +889,18 @@ class ClientTest extends TestCase
     public function testSetBillingAgreementDetailsWithSCAExceptCurrencyCode()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                 => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_billing_agreement_id' => 'AmazonBillingAgreementId',
-            'platform_id'                 => 'BillingAgreementAttributes.PlatformId',
-            'seller_note'                 => 'BillingAgreementAttributes.SellerNote',
+            'platform_id' => 'BillingAgreementAttributes.PlatformId',
+            'seller_note' => 'BillingAgreementAttributes.SellerNote',
             'seller_billing_agreement_id' => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.SellerBillingAgreementId',
-            'custom_information'          => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation',
-            'store_name'                  => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName',
-            'billing_agreement_type'      => 'BillingAgreementAttributes.BillingAgreementType',
-            'subscription_amount'         => 'BillingAgreementAttributes.SubscriptionAmount.Amount',
-            'mws_auth_token'              => 'MWSAuthToken'
-        );
+            'custom_information' => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.CustomInformation',
+            'store_name' => 'BillingAgreementAttributes.SellerBillingAgreementAttributes.StoreName',
+            'billing_agreement_type' => 'BillingAgreementAttributes.BillingAgreementType',
+            'subscription_amount' => 'BillingAgreementAttributes.SubscriptionAmount.Amount',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'SetBillingAgreementDetails';
 
@@ -922,11 +921,11 @@ class ClientTest extends TestCase
     public function testConfirmBillingAgreementWithoutSCA()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                 => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_billing_agreement_id' => 'AmazonBillingAgreementId',
-            'mws_auth_token'              => 'MWSAuthToken'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'ConfirmBillingAgreement';
 
@@ -946,13 +945,13 @@ class ClientTest extends TestCase
     public function testConfirmBillingAgreementWithSCA()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                 => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_billing_agreement_id' => 'AmazonBillingAgreementId',
-            'success_url'                 => 'SuccessUrl',
-            'failure_url'                 => 'FailureUrl',
-            'mws_auth_token'              => 'MWSAuthToken'
-        );
+            'success_url' => 'SuccessUrl',
+            'failure_url' => 'FailureUrl',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'ConfirmBillingAgreement';
 
@@ -969,15 +968,14 @@ class ClientTest extends TestCase
         $this->assertEquals($apiParametersString, $expectedStringParams);
     }
 
-
     public function testValidateBillingAgreement()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                 => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_billing_agreement_id' => 'AmazonBillingAgreementId',
-            'mws_auth_token'              => 'MWSAuthToken'
-        );
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'ValidateBillingAgreement';
 
@@ -997,24 +995,24 @@ class ClientTest extends TestCase
     public function testAuthorizeOnBillingAgreement()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                 => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_billing_agreement_id' => 'AmazonBillingAgreementId',
-            'authorization_reference_id'  => 'AuthorizationReferenceId',
-            'authorization_amount'        => 'AuthorizationAmount.Amount',
-            'currency_code'               => 'AuthorizationAmount.CurrencyCode',
-            'seller_authorization_note'   => 'SellerAuthorizationNote',
-            'transaction_timeout'         => 'TransactionTimeout',
-            'capture_now'                 => 'CaptureNow',
-            'soft_descriptor'             => 'SoftDescriptor',
-            'seller_note'                 => 'SellerNote',
-            'platform_id'                 => 'PlatformId',
-            'custom_information'          => 'SellerOrderAttributes.CustomInformation',
-            'seller_order_id'             => 'SellerOrderAttributes.SellerOrderId',
-            'store_name'                  => 'SellerOrderAttributes.StoreName',
-            'inherit_shipping_address'    => 'InheritShippingAddress',
-            'mws_auth_token'              => 'MWSAuthToken'
-        );
+            'authorization_reference_id' => 'AuthorizationReferenceId',
+            'authorization_amount' => 'AuthorizationAmount.Amount',
+            'currency_code' => 'AuthorizationAmount.CurrencyCode',
+            'seller_authorization_note' => 'SellerAuthorizationNote',
+            'transaction_timeout' => 'TransactionTimeout',
+            'capture_now' => 'CaptureNow',
+            'soft_descriptor' => 'SoftDescriptor',
+            'seller_note' => 'SellerNote',
+            'platform_id' => 'PlatformId',
+            'custom_information' => 'SellerOrderAttributes.CustomInformation',
+            'seller_order_id' => 'SellerOrderAttributes.SellerOrderId',
+            'store_name' => 'SellerOrderAttributes.StoreName',
+            'inherit_shipping_address' => 'InheritShippingAddress',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'AuthorizeOnBillingAgreement';
 
@@ -1034,12 +1032,12 @@ class ClientTest extends TestCase
     public function testCloseBillingAgreement()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                 => 'SellerId',
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
             'amazon_billing_agreement_id' => 'AmazonBillingAgreementId',
-            'closure_reason'              => 'ClosureReason',
-            'mws_auth_token'              => 'MWSAuthToken'
-        );
+            'closure_reason' => 'ClosureReason',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'CloseBillingAgreement';
 
@@ -1059,10 +1057,10 @@ class ClientTest extends TestCase
     public function testGetMerchantNotificationConfiguration()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                 => 'SellerId',
-            'mws_auth_token'              => 'MWSAuthToken'
-        );
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'GetMerchantNotificationConfiguration';
 
@@ -1082,11 +1080,11 @@ class ClientTest extends TestCase
     public function testSetMerchantNotificationConfiguration()
     {
         $client = new Client($this->configParams);
-        $fieldMappings = array(
-            'merchant_id'                     => 'SellerId',
-            'notification_configuration_list' => array(),
-            'mws_auth_token'                  => 'MWSAuthToken'
-        );
+        $fieldMappings = [
+            'merchant_id' => 'SellerId',
+            'notification_configuration_list' => [],
+            'mws_auth_token' => 'MWSAuthToken',
+        ];
 
         $action = 'SetMerchantNotificationConfiguration';
 
@@ -1111,12 +1109,11 @@ class ClientTest extends TestCase
     public function testCharge()
     {
         $client = new Client($this->configParams);
-        $apiCallParams = array('amazon_reference_id' => 'S01-TEST');
-
+        $apiCallParams = ['amazon_reference_id' => 'S01-TEST'];
 
         try {
             $client = new Client($this->configParams);
-            $apiCallParams = array('amazon_reference_id' => '');
+            $apiCallParams = ['amazon_reference_id' => ''];
             $client->charge($apiCallParams);
         } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/key amazon_order_reference_id or amazon_billing_agreement_id is null and is a required parameter./i', strval($expected));
@@ -1124,7 +1121,7 @@ class ClientTest extends TestCase
 
         try {
             $client = new Client($this->configParams);
-            $apiCallParams = array('amazon_reference_id' => 'T01');
+            $apiCallParams = ['amazon_reference_id' => 'T01'];
             $client->charge($apiCallParams);
         } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/Invalid Amazon Reference ID./i', strval($expected));
@@ -1154,42 +1151,40 @@ class ClientTest extends TestCase
     {
         $client = new Client($this->configParams);
 
-        $parameters['SellerId']         = $this->configParams['merchant_id'];
-        $parameters['AWSAccessKeyId']   = $this->configParams['access_key'];
-        $parameters['Version']          = 'test';
-        $parameters['SignatureMethod']  = 'HmacSHA256';
+        $parameters['SellerId'] = $this->configParams['merchant_id'];
+        $parameters['AWSAccessKeyId'] = $this->configParams['access_key'];
+        $parameters['Version'] = 'test';
+        $parameters['SignatureMethod'] = 'HmacSHA256';
         $parameters['SignatureVersion'] = 2;
-        $parameters['Timestamp']        = $this->getFormattedTimestamp();
+        $parameters['Timestamp'] = $this->getFormattedTimestamp();
         uksort($parameters, 'strcmp');
 
-        $signatureObj = new Signature($this->configParams,$parameters);
+        $signatureObj = new Signature($this->configParams, $parameters);
         $expectedSignature = $signatureObj->getSignature();
 
-        $this->callPrivateMethod($client,'createServiceUrl', null);
+        $this->callPrivateMethod($client, 'createServiceUrl', null);
 
-        $signature = $this->callPrivateMethod($client,'signParameters', $parameters);
+        $signature = $this->callPrivateMethod($client, 'signParameters', $parameters);
 
         $this->assertEquals($signature, $expectedSignature);
     }
 
     public function test500or503()
     {
-       try  {
+        try {
             $client = new Client($this->configParams);
 
             $url = 'https://www.amazon.com/OffAmazonPayments_Sandbox/2013-01-01';
             $client->setMwsServiceUrl($url);
             $this->callPrivateMethod($client, 'invokePost', null);
-
         } catch (\Exception $expected) {
             $this->assertMatchesRegularExpression('/Maximum number of retry attempts./i', strval($expected));
         }
-
     }
 
     public function testXmlResponse()
     {
-        $response = array();
+        $response = [];
         $response['ResponseBody'] =
         '<GetOrderReferenceDetailsResponse xmlns="http://mws.amazonservices.com/schema/OffAmazonPayments/2013-01-01">
         <AmazonOrderReferenceId>S01-5806490-2147504</AmazonOrderReferenceId>
@@ -1205,7 +1200,7 @@ class ClientTest extends TestCase
 
     public function testJsonResponse()
     {
-        $response = array('Status' => '200');
+        $response = ['Status' => '200'];
         $response['ResponseBody'] =
         '<GetOrderReferenceDetailsResponse xmlns="http://mws.amazonservices.com/schema/OffAmazonPayments/2013-01-01">
         <AmazonOrderReferenceId>S01-5806490-2147504</AmazonOrderReferenceId>
@@ -1224,7 +1219,7 @@ class ClientTest extends TestCase
 
     public function testArrayResponse()
     {
-        $response = array('Status' => '200');
+        $response = ['Status' => '200'];
         $response['ResponseBody'] =
         '<GetOrderReferenceDetailsResponse xmlns="http://mws.amazonservices.com/schema/OffAmazonPayments/2013-01-01">
         <AmazonOrderReferenceId>S01-5806490-2147504</AmazonOrderReferenceId>
@@ -1232,10 +1227,10 @@ class ClientTest extends TestCase
         <SellerNote>This is testing API call</SellerNote>
         </GetOrderReferenceDetailsResponse>';
 
-        $array = array('AmazonOrderReferenceId' => 'S01-5806490-2147504',
-                      'ExpirationTimestamp' => '2015-09-27T02:18:33.408Z',
-                      'SellerNote' => 'This is testing API call',
-                      'ResponseStatus' => '200');
+        $array = ['AmazonOrderReferenceId' => 'S01-5806490-2147504',
+            'ExpirationTimestamp' => '2015-09-27T02:18:33.408Z',
+            'SellerNote' => 'This is testing API call',
+            'ResponseStatus' => '200', ];
 
         $responseObj = new ResponseParser($response);
         $arrayResponse = $responseObj->toArray();
@@ -1245,8 +1240,8 @@ class ClientTest extends TestCase
 
     private function setParametersAndPost($fieldMappings, $action)
     {
-        $expectedParameters = array();
-        $apiCallParams = array();
+        $expectedParameters = [];
+        $apiCallParams = [];
 
         $parameters = $this->setDefaultValues($fieldMappings);
         $expectedParameters = $parameters['expectedParameters'];
@@ -1259,12 +1254,12 @@ class ClientTest extends TestCase
                 $expectedParameters[$value] = true;
                 $apiCallParams[$parm] = true;
             } elseif ($parm === 'order_item_categories') {
-                $apiCallParams[$parm] = array('Antiques', 'Electronics');
+                $apiCallParams[$parm] = ['Antiques', 'Electronics'];
             } elseif ($parm === 'order_status_list') {
-                $apiCallParams[$parm] = array('Open', 'Closed');
+                $apiCallParams[$parm] = ['Open', 'Closed'];
             } elseif ($parm === 'notification_configuration_list') {
-                $notificationConfiguration['https://dev.null/one'] = array('ORDER_REFERENCE', 'PAYMENT_AUTHORIZE');
-                $notificationConfiguration['https://dev.null/two'] = array('ALL');
+                $notificationConfiguration['https://dev.null/one'] = ['ORDER_REFERENCE', 'PAYMENT_AUTHORIZE'];
+                $notificationConfiguration['https://dev.null/two'] = ['ALL'];
                 $apiCallParams[$parm] = $notificationConfiguration;
             } elseif (!isset($expectedParameters[$value])) {
                 $unique_id = uniqid();
@@ -1273,14 +1268,14 @@ class ClientTest extends TestCase
             }
         }
 
-        return array('expectedParameters' => $expectedParameters,
-                     'apiCallParams'      => $apiCallParams);
+        return ['expectedParameters' => $expectedParameters,
+            'apiCallParams' => $apiCallParams, ];
     }
 
     private function setDefaultValues($fieldMappings)
     {
-        $expectedParameters = array();
-        $apiCallParams = array();
+        $expectedParameters = [];
+        $apiCallParams = [];
 
         if (array_key_exists('platform_id', $fieldMappings)) {
             $expectedParameters[$fieldMappings['platform_id']] = $this->configParams['platform_id'];
@@ -1292,12 +1287,13 @@ class ClientTest extends TestCase
             $apiCallParams['currency_code'] = 'TEST';
         }
 
-        return array('expectedParameters' => $expectedParameters,
-                     'apiCallParams'      => $apiCallParams);
+        return ['expectedParameters' => $expectedParameters,
+            'apiCallParams' => $apiCallParams, ];
     }
 
-    /* Formats date as ISO 8601 timestamp */
-
+    /**
+     * Formats date as ISO 8601 timestamp
+     */
     private function getFormattedTimestamp()
     {
         return gmdate("Y-m-d\TH:i:s.\\0\\0\\0\\Z", time());
@@ -1309,6 +1305,7 @@ class ClientTest extends TestCase
         $reflectionMethod = $reflectionClass->getMethod($methodName);
         $reflectionMethod->setAccessible(true);
         $expectedStringParams = $reflectionMethod->invoke($client, $parameters);
+
         return $expectedStringParams;
     }
 }
