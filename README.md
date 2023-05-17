@@ -1,4 +1,4 @@
-This fork only works, when this is used via composer and implements fixes for PHP 8.1
+This fork only works, when this is used via composer and implements fixes for PHP 8.x
 
 - Removed psr files from repository
 - Removed phar file creation tool
@@ -509,7 +509,7 @@ SDK logging of sanitized requests and responses can work with any PSR-3 complian
 namespace AmazonPay;
 require 'vendor/autoload.php';
 include 'amazon-pay.phar';
- 
+
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 

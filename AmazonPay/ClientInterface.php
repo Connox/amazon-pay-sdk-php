@@ -55,7 +55,7 @@ interface ClientInterface
      *
      * @param $access_token [String]
      */
-    public function getUserInfo($access_token);
+    public function getUserInfo($accessToken);
 
 
     /* GetMerchantAccountStatus API call - Returns the status of the Merchant Account.
