@@ -2,7 +2,7 @@
    "name": "connox/amazon-pay-sdk-php",
    "type": "library",
    "description": "Fixed fork of Amazon Pay SDK (PHP)",
-   "version": "3.7.1.2",
+   "version": "3.7.1.3",
    "keywords": [
       "amazon",
       "pay",
